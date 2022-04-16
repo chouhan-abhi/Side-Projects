@@ -8,9 +8,9 @@ import java.util.*;
 public class MineSweeperGUI {
     // The value assigned to cells marked as mines. 10 works
     // because no cell will have more than 8 neighbouring mines.
-    private static final int MINE = 10;
+    private static final int MINE = 1000;
     // The size in pixels for the frame.
-    private static final int SIZE = 500;
+    private static final int SIZE = 640;
 
     // The number of mines at generated is the grid size * this constant
     private static final double POPULATION_CONSTANT = 1.5;
@@ -19,7 +19,9 @@ public class MineSweeperGUI {
     // new arrays every time a cell's neighbours are to be retrieved.
     private static Cell[] reusableStorage = new Cell[8];
 
-    private int gridSize;
+    private int gridLength;
+    private int gridWidth;
+    private int mines;
 
     private Cell[][] cells;
 
@@ -103,8 +105,8 @@ public class MineSweeperGUI {
                     int rowValue = row + rowOffset;
                     int colValue = col + colOffset;
 
-                    if (rowValue < 0 || rowValue >= gridSize
-                        || colValue < 0 || colValue >= gridSize) {
+                    if (rowValue < 0 || rowValue >= gridLength
+                        || colValue < 0 || colValue >= gridWidth) {
                         continue;
                     }
 
@@ -129,9 +131,11 @@ public class MineSweeperGUI {
         }
     }
 
-    private MineSweeperGUI(final int gridSize) {
-        this.gridSize = gridSize;
-        cells = new Cell[gridSize][gridSize];
+    private MineSweeperGUI(final int gridLength, final int gridWidth, final int totalMines) {
+        this.gridLength = gridLength;
+        this.gridWidth = gridWidth;
+        this.mines = totalMines;
+        cells = new Cell[gridLength][gridWidth];
 
         frame = new JFrame("Minesweeper");
         frame.setSize(SIZE, SIZE);
@@ -161,10 +165,10 @@ public class MineSweeperGUI {
 
     private void initializeGrid() {
         Container grid = new Container();
-        grid.setLayout(new GridLayout(gridSize, gridSize));
+        grid.setLayout(new GridLayout(gridLength, gridWidth));
 
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
+        for (int row = 0; row < gridLength; row++) {
+            for (int col = 0; col < gridWidth; col++) {
                 cells[row][col] = new Cell(row, col, actionListener);
                 grid.add(cells[row][col]);
             }
@@ -174,8 +178,8 @@ public class MineSweeperGUI {
     }
 
     private void resetAllCells() {
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
+        for (int row = 0; row < gridLength; row++) {
+            for (int col = 0; col < gridWidth; col++) {
                 cells[row][col].reset();
             }
         }
@@ -184,29 +188,31 @@ public class MineSweeperGUI {
     private void createMines() {
         resetAllCells();
 
-        final int    mineCount = (int) POPULATION_CONSTANT * gridSize;
+        final int mineCount = (int) POPULATION_CONSTANT * mines;
         final Random random    = new Random();
 
         // Map all (row, col) pairs to unique integers
-        Set<Integer> positions = new HashSet<>(gridSize * gridSize);
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
-                positions.add(row * gridSize + col);
+        Set<Integer> positions = new HashSet<>(gridLength * gridWidth);
+        for (int row = 0; row < gridLength; row++) {
+            for (int col = 0; col < gridWidth; col++) {
+                positions.add(row * gridLength + col);
+
+                //need to check later
             }
         }
 
         // Initialize mines
         for (int index = 0; index < mineCount; index++) {
             int choice = random.nextInt(positions.size());
-            int row    = choice / gridSize;
-            int col    = choice % gridSize;
+            int row    = choice / gridLength;
+            int col    = choice % gridWidth;
             cells[row][col].setValue(MINE);
             positions.remove(choice);
         }
 
         // Initialize neighbour counts
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
+        for (int row = 0; row < gridLength; row++) {
+            for (int col = 0; col < gridWidth; col++) {
                 if (!cells[row][col].isAMine()) {
                     cells[row][col].updateNeighbourCount();
                 }
@@ -232,8 +238,8 @@ public class MineSweeperGUI {
     }
 
     private void revealBoardAndDisplay(String message) {
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
+        for (int row = 0; row < gridLength; row++) {
+            for (int col = 0; col < gridWidth; col++) {
                 if (!cells[row][col].isEnabled()) {
                     cells[row][col].reveal();
                 }
@@ -291,7 +297,7 @@ public class MineSweeperGUI {
         }
     }
 
-    private static void run(final int gridSize) {
+    private static void run(final int level) {
         try {
             // Totally optional. But this applies the look and
             // feel for the current OS to the a application,
@@ -299,11 +305,33 @@ public class MineSweeperGUI {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignore) { }
         // Launch the program
-        new MineSweeperGUI(gridSize);
+        int boardLength, boardWidth, minesCount; 
+        switch (level) {
+            case 3:
+                boardLength = 22;
+                boardWidth = 25;
+                minesCount = 91;
+                break;
+            case 2:
+                boardLength = 13;
+                boardWidth = 18;
+                minesCount = 35;
+                break;
+            default:
+                boardLength = 7;
+                boardWidth = 9;
+                minesCount  =10;
+                break;
+        }
+        new MineSweeperGUI(boardLength, boardWidth, minesCount);
     }
 
     public static void main(String[] args) {
-        final int gridSize = 10;
-        SwingUtilities.invokeLater(() -> MineSweeperGUI.run(gridSize));
+
+        Scanner input = new Scanner(System.in);
+        System.out.println("Select Level");
+        int level = input.nextInt();
+        SwingUtilities.invokeLater(() -> MineSweeperGUI.run(level));
+        input.close();
     }
 }
