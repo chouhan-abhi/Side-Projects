@@ -25,7 +25,7 @@ public class MineSweeperGUI {
 
     private Cell[][] cells;
 
-    private JFrame  frame;
+    private static JFrame  frame;
     private JButton reset;
     private JButton giveUp;
 
@@ -137,7 +137,6 @@ public class MineSweeperGUI {
         this.mines = totalMines;
         cells = new Cell[gridLength][gridWidth];
 
-        frame = new JFrame("Minesweeper");
         frame.setSize(SIZE, SIZE);
         frame.setLayout(new BorderLayout());
 
@@ -327,11 +326,16 @@ public class MineSweeperGUI {
     }
 
     public static void main(String[] args) {
-
-        Scanner input = new Scanner(System.in);
-        System.out.println("Select Level");
-        int level = input.nextInt();
-        SwingUtilities.invokeLater(() -> MineSweeperGUI.run(level));
-        input.close();
+        frame = new JFrame("Minesweeper");
+        int level;
+        JDialog.setDefaultLookAndFeelDecorated(true);
+        Object[] selectionValues = { "Beginner", "Intermediate", "Advance" };
+        String initialSelection = "Dogs";
+        Object selection = JOptionPane.showInputDialog(frame, "Select stage you to play:",
+            "Minesweeper", JOptionPane.QUESTION_MESSAGE, null, selectionValues, initialSelection);
+            if(selection == "Beginner") level = 1;
+            else if(selection == "Intermediate") level = 2;
+            else level = 3;
+        if(selection != null) SwingUtilities.invokeLater(() -> MineSweeperGUI.run(level));
     }
 }
